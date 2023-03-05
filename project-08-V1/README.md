@@ -6,8 +6,7 @@
 
 
 ## AWS Infra Architecture for this project
-- upload_here_image 
-
+![Untitled Diagram drawio (26)](https://user-images.githubusercontent.com/112654341/222944548-3ee35638-451b-4dc9-ac2a-860401d6695c.png)
 
 ## AWS services for this project
 - 1 vpc
@@ -118,7 +117,7 @@
 - 1 security group for pr8-alb(application-load-balancer)
 - 1 security group for app-servers
 - 1 security group for rds-server
-- upload_here security groups architecture
+![Untitled Diagram drawio (23)](https://user-images.githubusercontent.com/112654341/222944563-950b60ae-487c-477c-bd60-0a9d4ff8420e.png)
 
 
 ### Step-B-01: create 1 security group for bastion-server
