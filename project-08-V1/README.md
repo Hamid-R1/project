@@ -328,7 +328,7 @@ sudo systemctl enable mariadb
 # STEP 3 - Setpassword & DB Variables
 DBName='HR_RDS_DB'
 DBUser='admin'
-DBPassword='Admin123'
+DBPassword='Project8'
 DBRootPassword='Admin123root'
 DBEndpoint='copy_here_rds_endpoint'
 
@@ -384,7 +384,11 @@ exit
 
 ### Step-G-02: Install dependencies, system softwares, application & configure application files in `app-server-1`
 ```bash
-vim deploy-app.sh			# copy same shell scrips file `deploy-app.sh` which we created in `Step-G-01`
+#ssh to app-server-2 from bastion-server
+ssh -i "wp-project" ec2-user@private-ip-of-app-server-2
+
+# create & copy same shell scrips file `deploy-app.sh` which we created in `Step-G-01`
+vim deploy-app.sh
 
 # run shell file `deploy-app.sh`
 bash deploy-app.sh
