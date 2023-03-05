@@ -117,6 +117,8 @@
 - 1 security group for pr8-alb(application-load-balancer)
 - 1 security group for app-servers
 - 1 security group for rds-server
+
+### security groups for all compute resources
 ![Untitled Diagram drawio (23)](https://user-images.githubusercontent.com/112654341/222944563-950b60ae-487c-477c-bd60-0a9d4ff8420e.png)
 
 
