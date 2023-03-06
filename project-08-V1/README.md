@@ -169,6 +169,8 @@
 ## Step-C: create rds instance with mysql engine
 - create subnet-group for rds-server
 - create rds-server with mysql engine
+- `aws official documents` reference: 
+	- https://aws.amazon.com/getting-started/hands-on/deploy-wordpress-with-amazon-rds/module-one/
 
 
 ### Step-C-01: create subnet-group for rds-server
