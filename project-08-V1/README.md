@@ -388,7 +388,7 @@ exit
 
 
 
-### Step-G-02: Install dependencies, system softwares, application & configure application files in `app-server-1`
+### Step-G-02: Install dependencies, system softwares, application & configure application files in `app-server-2`
 ```bash
 #ssh to app-server-2 from bastion-server
 ssh -i "wp-project" ec2-user@private-ip-of-app-server-2
