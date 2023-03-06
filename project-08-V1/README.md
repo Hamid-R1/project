@@ -302,6 +302,9 @@ ssh -i "wp-project" ec2-user@private-ip-of-app-server-1
 
 
 ### Step-G-01: Install dependencies, system softwares, application & configure application files in `app-server-1`
+- `aws official documents` reference: 
+	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html
+	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hosting-wordpress.html
 ```bash
 vim deploy-app.sh
 
