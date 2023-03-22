@@ -242,9 +242,9 @@ kubectl get po -A
 ```
 
 
-#### see `wp-mysql.yml` script
+#### see `wp-mysql.yml` script:
+- $ `cat wp-mysql.yml`
 ```
-cat wp-mysql.yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
