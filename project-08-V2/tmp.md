@@ -241,11 +241,72 @@ kubectl apply -f wp-mysql.yml
 kubectl get po -A
 ```
 
+
 #### see `wp-mysql.yml` script
 ```
 cat wp-mysql.yml
-
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: db:3306
+        - name: WORDPRESS_DB_USER
+          value: root
+        - name: WORDPRESS_DB_PASSWORD
+          value: admin123
+        - name: WORDPRESS_DB_NAME
+          value: hr_db
+        volumeMounts:
+        - name: wp-data
+          mountPath: /var/www/html
+      - name: mysql
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: admin123
+        - name: MYSQL_DATABASE
+          value: hr_db
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: db-data
+        emptyDir: {}
+      - name: wp-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+spec:
+  selector:
+    app: wordpress
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
 ```
+
+
 
 ```
 kubectl get po -o wide
