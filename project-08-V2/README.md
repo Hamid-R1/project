@@ -375,7 +375,7 @@ resource "aws_security_group" "wp-DB-SG" {
 - create rds-server with mysql engine
 
 
-### Step-03::01: Terraform script for rds instance: `04-rds.tf`
+### Step-03:01: Terraform script for rds instance: `04-rds.tf`
 ```t
 #############################
 # DB Subnet Group creation
