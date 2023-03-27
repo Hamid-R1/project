@@ -726,7 +726,7 @@ bash deploy-app.sh
 		- Evaluate target health: yes/enabled
 		- clik on `create records` >> done.
 
-	-Record 3:
+	- Record 3:
 		```
 		- Record name: www
 		- Record type: A – Routes traffic to an IPv4 address and some AWS resources
