@@ -702,8 +702,34 @@ bash deploy-app.sh
 
 
 
-## Step-08: Open `pr8-alb` dns name & configure your application
-- copy `DNS name` of `pr8-alb` and paste to new tab
+## Step-08: Configuring `Amazon Route 53` to route traffic to Application load balancer:
+- go to AWS Console: >> Route 53 >> Hosted zones >> cloud-ops.store >> Create record: here we need to create 2 records:
+	- Record 1:
+		- Record name: ---
+		-Record type: A – Routes traffic to an IPv4 address and some AWS resources
+		-alias: enabled
+		-Route traffic to: Alias to Application and Classic Load Balancer
+		-choose region: Singapore  (ap-southeast-1)
+		-choose load balncer: select-your-load-balancer
+		-Routing policy: simple policy
+		-Evaluate target health: yes/enabled
+		-clik on `create records` >> done.
+	
+	- Record 2:
+		- Record name: www
+		-Record type: A – Routes traffic to an IPv4 address and some AWS resources
+		-alias: enabled
+		-Route traffic to: Alias to Application and Classic Load Balancer
+		-choose region: Singapore  (ap-southeast-1)
+		-choose load balncer: select-your-load-balancer
+		-Routing policy: simple policy
+		-Evaluate target health: yes/enabled
+		-clik on `create records` >> done.
+
+
+
+## Step-09: Open `cloud-ops.store` domain & configure your application
+- open this domain `cloud-ops.store` in new tab
 - setup username & password for application & install
 - login application dashboard & go through the dashboard
 - open website which will be publicly available for end-users
