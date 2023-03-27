@@ -418,7 +418,7 @@ resource "aws_db_instance" "db_instance" {
 - create 2 ec2-instances(app-server-1 & app-server-2) in private-subnets
 
 
-### Step-04::01: Terraform script for `Instance` creation: `05-ec2.tf`
+### Step-04:01: Terraform script for `Instance` creation: `05-ec2.tf`
 ```t
 # Data source
 # Get latest AMI ID for Amazon Linux2 OS
