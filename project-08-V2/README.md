@@ -583,7 +583,18 @@ resource "aws_lb_listener" "front_end-443" {
 
 
 
-## Step-06: Deploy application and configure to make available for end-users
+## Step-06: Create All Above AWS Services byusing Terraform CLI
+```t
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+```
+
+
+
+## Step-07: Deploy application and configure to make available for end-users
 - ssh `bastion-server` 
 - copy `wp-project.pem` file from local pc to `bastion-server` & give read permission 
 ```bash
@@ -597,7 +608,7 @@ ssh -i "wp-project" ec2-user@private-ip-of-app-server-1
 ```
 
 
-### Step-06-01: Install dependencies, system softwares, application & configure application files in `app-server-1`
+### Step-07-01: Install dependencies, system softwares, application & configure application files in `app-server-1`
 ```bash
 vim deploy-app.sh
 
@@ -676,12 +687,12 @@ sudo rm /tmp/db.setup
 
 
 
-### Step-06-02: Install dependencies, system softwares, application & configure application files in `app-server-1`
+### Step-07-02: Install dependencies, system softwares, application & configure application files in `app-server-1`
 ```bash
 #ssh to app-server-2 from bastion-server
 ssh -i "wp-project" ec2-user@private-ip-of-app-server-2
 
-# create & copy same shell scrips file `deploy-app.sh` which we created in `Step-06-01`
+# create & copy same shell scrips file `deploy-app.sh` which we created in `Step-07-01`
 vim deploy-app.sh
 
 # run shell file `deploy-app.sh`
@@ -691,7 +702,7 @@ bash deploy-app.sh
 
 
 
-## Step-07: Open `pr8-alb` dns name & configure your application
+## Step-08: Open `pr8-alb` dns name & configure your application
 - copy `DNS name` of `pr8-alb` and paste to new tab
 - setup username & password for application & install
 - login application dashboard & go through the dashboard
