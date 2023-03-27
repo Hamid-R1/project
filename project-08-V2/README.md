@@ -35,8 +35,7 @@ project-08-V2
 - 1 nat gateway
 
 
-### Terraform script for VPC Complete Network Creation
-- `02-vpc.tf`
+### Step-01:01: Terraform script for VPC Complete Network Creation: `02-vpc.tf`
 ```t
 # VPC
 resource "aws_vpc" "wp_vpc" {
@@ -241,8 +240,7 @@ resource "aws_route_table_association" "database_subnet_association-2" {
 - upload_here security groups architecture
 
 
-### Terraform script for security groups
-- `03-security-group.tf`
+### Step-02:01: Terraform script for security groups: `03-security-group.tf`
 ```t
 #####################################
 # security group for bastion-server
@@ -372,17 +370,12 @@ resource "aws_security_group" "wp-DB-SG" {
 
 
 
-
-
 ## Step-03: create rds instance with mysql engine
 - create subnet-group for rds-server
 - create rds-server with mysql engine
-- `aws official documents` reference: 
-	- https://aws.amazon.com/getting-started/hands-on/deploy-wordpress-with-amazon-rds/module-one/
 
 
-### Terraform script for rds instance
-- `04-rds.tf`
+### Step-03::01: Terraform script for rds instance: `04-rds.tf`
 ```t
 #############################
 # DB Subnet Group creation
@@ -425,8 +418,7 @@ resource "aws_db_instance" "db_instance" {
 - create 2 ec2-instances(app-server-1 & app-server-2) in private-subnets
 
 
-### Terraform script for `Instances` created
-- `05-ec2.tf`
+### Step-04::01: Terraform script for `Instance` creation: `05-ec2.tf`
 ```t
 # Data source
 # Get latest AMI ID for Amazon Linux2 OS
@@ -500,14 +492,12 @@ resource "aws_instance" "wp-app-server-2" {
 
 
 
-
 ## Step-05: create Application load-balancer
 - create target group
 - create alb
 
 
-### Terraform script for Application load-balancer
-- `06-alb.tf` 
+### Step-05:01: Terraform script for `target group` & `Application load-balancer`: `06-alb.tf` 
 ```t
 # target group
 resource "aws_lb_target_group" "wp_tg" {
@@ -593,7 +583,6 @@ resource "aws_lb_listener" "front_end-443" {
 
 
 
-
 ## Step-06: Deploy application and configure to make available for end-users
 - ssh `bastion-server` 
 - copy `wp-project.pem` file from local pc to `bastion-server` & give read permission 
@@ -609,16 +598,19 @@ ssh -i "wp-project" ec2-user@private-ip-of-app-server-1
 
 
 ### Step-06-01: Install dependencies, system softwares, application & configure application files in `app-server-1`
-- `aws official documents` reference: 
-	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html
-	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hosting-wordpress.html
 ```bash
 vim deploy-app.sh
 
-# see shell scrips of `deploy-app.sh`
-cat deploy-app.sh
-#!/bin/bash -xe
+# run shell file `deploy-app.sh`
+bash deploy-app.sh
 
+# come back to bastion-server
+exit
+```
+
+- `cat deploy-app.sh` see shell scrips:
+```
+#!/bin/bash -xe
 
 # System Updates
 sudo yum -y update
@@ -679,15 +671,6 @@ echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
 echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
 mysql -u root --password=$DBRootPassword < /tmp/db.setup
 sudo rm /tmp/db.setup
-
-
-
-# run shell file `deploy-app.sh`
-bash deploy-app.sh
-
-
-# come back to bastion-server
-exit
 ```
 
 
