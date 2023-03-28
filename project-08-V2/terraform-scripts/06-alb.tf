@@ -51,8 +51,8 @@ resource "aws_lb" "wp_alb" {
 }
 
 
-# Load Balancer Listener
-resource "aws_lb_listener" "alb_forward_listener" {
+# Load Balancer Listener on port 80
+resource "aws_lb_listener" "alb_forward_listener_80" {
   load_balancer_arn = aws_lb.wp_alb.arn
   port              = "80"
   protocol          = "HTTP"
@@ -64,18 +64,17 @@ resource "aws_lb_listener" "alb_forward_listener" {
 
 
 /*
-# Load Balancer Listener (on SSL 443 'https')
-resource "aws_lb_listener" "front_end-443" {
-  load_balancer_arn = aws_lb.front_end.arn
+# Load Balancer Listener on port 443
+resource "aws_lb_listener" "alb_forward_listener_443" {
+  load_balancer_arn = aws_lb.wp_alb.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
-
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  #Noted: 'certificate_arn' taken from our existing Certificates in 'AWS Certificate Manager' #
+  certificate_arn = "arn:aws:acm:ap-southeast-1:214262210418:certificate/9af787ff-2d1d-41e2-bc18-2a1687a70023"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.front_end.arn
+    target_group_arn = aws_lb_target_group.wp_tg.arn
   }
 }
 */
-
