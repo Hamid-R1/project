@@ -25,7 +25,6 @@ resource "aws_security_group" "wp-bastion-sg" {
 }
 
 
-
 ############################
 # security group for ALB
 ############################
@@ -43,6 +42,7 @@ resource "aws_security_group" "wp-ALB-SG" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  /*
   ingress {
     description = "Allow port 443 from anywhere"
     from_port   = 443
@@ -50,6 +50,7 @@ resource "aws_security_group" "wp-ALB-SG" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
   egress {
     description = "Allow All"
     from_port   = 0
@@ -58,7 +59,6 @@ resource "aws_security_group" "wp-ALB-SG" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
 
 
 ###################################
@@ -85,6 +85,15 @@ resource "aws_security_group" "wp-App-SG" {
     security_groups = [aws_security_group.wp-ALB-SG.id]
     description     = "allow-trrafic-from-ALB-SG-only"
   }
+  /*
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.wp-ALB-SG.id]
+    description     = "allow-trrafic-from-ALB-SG-only"
+  }
+  */
   egress {
     from_port   = 0
     to_port     = 0
@@ -93,7 +102,6 @@ resource "aws_security_group" "wp-App-SG" {
     description = "Allow All"
   }
 }
-
 
 
 ###################################
@@ -121,4 +129,3 @@ resource "aws_security_group" "wp-DB-SG" {
     description = "Allow All"
   }
 }
-
