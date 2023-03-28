@@ -110,7 +110,6 @@ resource "aws_subnet" "wp-database-subnet-2" {
 }
 
 
-
 # Internet Gateway
 resource "aws_internet_gateway" "wp_igw" {
   vpc_id = aws_vpc.wp_vpc.id
@@ -118,7 +117,6 @@ resource "aws_internet_gateway" "wp_igw" {
     "Name" = "pr8-igw"
   }
 }
-
 
 
 # Create Elastic IP for NAT Gateway
@@ -137,7 +135,6 @@ resource "aws_nat_gateway" "wp-nat-gw" {
   # on the Internet Gateway for the VPC.
   depends_on = [aws_internet_gateway.wp_igw]
 }
-
 
 
 ######################################################
@@ -172,7 +169,6 @@ resource "aws_route" "wp-route-igw" {
 }
 
 
-
 ######################################################
 # private route table
 # private subnets association into private route table
@@ -203,7 +199,6 @@ resource "aws_route" "wp-route-nat-gw" {
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.wp-nat-gw.id
 }
-
 
 
 ######################################################
@@ -271,7 +266,6 @@ resource "aws_security_group" "wp-bastion-sg" {
 }
 
 
-
 ############################
 # security group for ALB
 ############################
@@ -289,6 +283,7 @@ resource "aws_security_group" "wp-ALB-SG" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  /*
   ingress {
     description = "Allow port 443 from anywhere"
     from_port   = 443
@@ -296,6 +291,7 @@ resource "aws_security_group" "wp-ALB-SG" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
   egress {
     description = "Allow All"
     from_port   = 0
@@ -304,7 +300,6 @@ resource "aws_security_group" "wp-ALB-SG" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
 
 
 ###################################
@@ -331,6 +326,15 @@ resource "aws_security_group" "wp-App-SG" {
     security_groups = [aws_security_group.wp-ALB-SG.id]
     description     = "allow-trrafic-from-ALB-SG-only"
   }
+  /*
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.wp-ALB-SG.id]
+    description     = "allow-trrafic-from-ALB-SG-only"
+  }
+  */
   egress {
     from_port   = 0
     to_port     = 0
@@ -339,7 +343,6 @@ resource "aws_security_group" "wp-App-SG" {
     description = "Allow All"
   }
 }
-
 
 
 ###################################
@@ -405,11 +408,12 @@ resource "aws_db_instance" "db_instance" {
   allocated_storage        = 20
   db_subnet_group_name     = aws_db_subnet_group.db_sub_group.id
   multi_az                 = false
+  vpc_security_group_ids   = [aws_security_group.wp-DB-SG.id]
+  availability_zone        = "ap-southeast-1a"
+  port                     = 3306
+  publicly_accessible      = false
   skip_final_snapshot      = true
   delete_automated_backups = true
-  publicly_accessible      = false
-  port                     = 3306
-  vpc_security_group_ids   = [aws_security_group.wp-DB-SG.id]
 }
 ```
 
@@ -418,12 +422,12 @@ resource "aws_db_instance" "db_instance" {
 ## Step-04: Ec2-Instances
 - create bastion-server in public-subnet-1
 - create 2 ec2-instances(app-server-1 & app-server-2) in private-subnets
+	- here we add `shell-scripts` into `user-data` for install all tools & dependencies for `wordpress` application deployment
 
 
 ### Step-04:01: Terraform script for `Instance` creation: `05-ec2.tf`
 ```t
-# Data source
-# Get latest AMI ID for Amazon Linux2 OS
+# Data source:  Get latest AMI ID for Amazon Linux2 OS
 data "aws_ami" "amazon_linux_2" {
   most_recent = true
   owners      = ["amazon"]
@@ -446,6 +450,69 @@ data "aws_ami" "amazon_linux_2" {
 }
 
 
+
+# Local variables
+locals {
+  user_data = <<-EOT
+#!/bin/bash -xe
+
+# System Updates
+sudo yum -y update
+
+# STEP 1 - Install system software - including Web and DB
+sudo yum install -y mariadb-server httpd
+sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+
+# STEP 2 - Web and DB Servers Online - and set to startup
+sudo systemctl start httpd
+sudo systemctl enable httpd
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+
+# STEP 3 - Setpassword & DB Variables
+DBName='HR_RDS_DB'
+DBUser='admin'
+DBPassword='Project8'
+DBRootPassword='Admin123root'
+DBEndpoint='${aws_db_instance.db_instance.address}'
+
+# STEP 4 - Set Mariadb Root Password
+mysqladmin -u root password $DBRootPassword
+
+# STEP 5 - Install Wordpress
+sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html
+cd /var/www/html
+sudo tar -zxvf latest.tar.gz
+sudo cp -rvf wordpress/* .
+sudo rm -R wordpress
+sudo rm latest.tar.gz
+
+# STEP 6 - Configure Wordpress
+sudo cp ./wp-config-sample.php ./wp-config.php
+sudo sed -i "s/'database_name_here'/'$DBName'/g" wp-config.php
+sudo sed -i "s/'username_here'/'$DBUser'/g" wp-config.php
+sudo sed -i "s/'password_here'/'$DBPassword'/g" wp-config.php
+sudo sed -i "s/'localhost'/'$DBEndpoint'/g" wp-config.php
+
+# Step 6a - permissions 
+sudo usermod -a -G apache ec2-user    #Add your user (in this case, ec2-user) to the apache group. 
+sudo chown -R ec2-user:apache /var/www    #Change the group ownership of /var/www and its contents to the apache group.
+sudo chmod 2775 /var/www
+sudo find /var/www -type d -exec chmod 2775 {} \;
+sudo find /var/www -type f -exec chmod 0664 {} \;
+
+# STEP 7 Create Wordpress DB
+echo "CREATE DATABASE $DBName;" >> /tmp/db.setup
+echo "CREATE USER '$DBUser'@'localhost' IDENTIFIED BY '$DBPassword';" >> /tmp/db.setup
+echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
+echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
+mysql -u root --password=$DBRootPassword < /tmp/db.setup
+sudo rm /tmp/db.setup
+EOT
+}
+
+
+
 # bastion-server in public-subnet-1
 resource "aws_instance" "wp-bastion-server" {
   ami                         = data.aws_ami.amazon_linux_2.id
@@ -454,8 +521,6 @@ resource "aws_instance" "wp-bastion-server" {
   subnet_id                   = aws_subnet.wp-public-subnet-1.id
   associate_public_ip_address = "true"
   vpc_security_group_ids      = [aws_security_group.wp-bastion-sg.id]
-  #user_data                   = base64encode(local.user_data)
-  #user_data = file("user-data.sh")      
   tags = {
     "Name" = "bastion-server"
   }
@@ -470,12 +535,16 @@ resource "aws_instance" "wp-app-server-1" {
   subnet_id                   = aws_subnet.wp-private-subnet-1.id
   associate_public_ip_address = "false"
   vpc_security_group_ids      = [aws_security_group.wp-App-SG.id]
-  #user_data                   = base64encode(local.user_data)
-  #user_data = file("user-data.sh")      
+  user_data                   = base64encode(local.user_data)
+  #user_data = file("deploy-app.sh")
   tags = {
     "Name" = "app-server-1"
   }
+  depends_on = [
+    aws_db_instance.db_instance
+  ]
 }
+
 
 resource "aws_instance" "wp-app-server-2" {
   ami                         = data.aws_ami.amazon_linux_2.id
@@ -484,11 +553,14 @@ resource "aws_instance" "wp-app-server-2" {
   subnet_id                   = aws_subnet.wp-private-subnet-2.id
   associate_public_ip_address = "false"
   vpc_security_group_ids      = [aws_security_group.wp-App-SG.id]
-  #user_data                   = base64encode(local.user_data)
-  #user_data = file("user-data.sh")      
+  user_data                   = base64encode(local.user_data)
+  #user_data = file("deploy-app.sh")
   tags = {
     "Name" = "app-server-2"
   }
+  depends_on = [
+    aws_db_instance.db_instance
+  ]
 }
 ```
 
@@ -554,8 +626,8 @@ resource "aws_lb" "wp_alb" {
 }
 
 
-# Load Balancer Listener
-resource "aws_lb_listener" "alb_forward_listener" {
+# Load Balancer Listener on port 80
+resource "aws_lb_listener" "alb_forward_listener_80" {
   load_balancer_arn = aws_lb.wp_alb.arn
   port              = "80"
   protocol          = "HTTP"
@@ -567,17 +639,17 @@ resource "aws_lb_listener" "alb_forward_listener" {
 
 
 /*
-# Load Balancer Listener (on SSL 443 'https')
-resource "aws_lb_listener" "front_end-443" {
-  load_balancer_arn = aws_lb.front_end.arn
+# Load Balancer Listener on port 443
+resource "aws_lb_listener" "alb_forward_listener_443" {
+  load_balancer_arn = aws_lb.wp_alb.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
-
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  #Noted: 'certificate_arn' taken from our existing Certificates in 'AWS Certificate Manager' #
+  certificate_arn = "arn:aws:acm:ap-southeast-1:214262210418:certificate/9af787ff-2d1d-41e2-bc18-2a1687a70023"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.front_end.arn
+    target_group_arn = aws_lb_target_group.wp_tg.arn
   }
 }
 */
@@ -592,149 +664,18 @@ terraform fmt
 terraform validate
 terraform plan
 terraform apply
+
+# to destroy all resources
+terraform destroy
 ```
 
 
-
-## Step-07: Deploy application and configure to make available for end-users
-- ssh `bastion-server` 
-- copy `wp-project.pem` file from local pc to `bastion-server` & give read permission 
-```bash
-vim wp-project
-chmod 400 wp-project
-```
-
-- ssh to `app-server-1` from `bastion-server`
-```bash
-ssh -i "wp-project" ec2-user@private-ip-of-app-server-1
-```
-
-
-### Step-07-01: Install dependencies, system softwares, application & configure application files in `app-server-1`
-```bash
-vim deploy-app.sh
-
-# run shell file `deploy-app.sh`
-bash deploy-app.sh
-
-# come back to bastion-server
-exit
-```
-
-- `cat deploy-app.sh` see shell scrips:
-```
-#!/bin/bash -xe
-
-# System Updates
-sudo yum -y update
-
-
-# STEP 1 - Install system software - including Web and DB
-sudo yum install -y mariadb-server httpd
-sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
-
-
-# STEP 2 - Web and DB Servers Online - and set to startup
-sudo systemctl start httpd
-sudo systemctl enable httpd
-sudo systemctl start mariadb
-sudo systemctl enable mariadb
-
-
-# STEP 3 - Setpassword & DB Variables
-DBName='HR_RDS_DB'
-DBUser='admin'
-DBPassword='Project8'
-DBRootPassword='Admin123root'
-DBEndpoint='copy_here_rds_endpoint'
-
-
-# STEP 4 - Set Mariadb Root Password
-mysqladmin -u root password $DBRootPassword
-
-
-# STEP 5 - Install Wordpress
-sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html
-cd /var/www/html
-sudo tar -zxvf latest.tar.gz
-sudo cp -rvf wordpress/* .
-sudo rm -R wordpress
-sudo rm latest.tar.gz
-
-
-# STEP 6 - Configure Wordpress
-sudo cp ./wp-config-sample.php ./wp-config.php
-sudo sed -i "s/'database_name_here'/'$DBName'/g" wp-config.php
-sudo sed -i "s/'username_here'/'$DBUser'/g" wp-config.php
-sudo sed -i "s/'password_here'/'$DBPassword'/g" wp-config.php
-sudo sed -i "s/'localhost'/'$DBEndpoint'/g" wp-config.php
-
-# Step 6a - permissions 
-sudo usermod -a -G apache ec2-user    #Add your user (in this case, ec2-user) to the apache group. 
-sudo chown -R ec2-user:apache /var/www    #Change the group ownership of /var/www and its contents to the apache group.
-sudo chmod 2775 /var/www
-
-sudo find /var/www -type d -exec chmod 2775 {} \;
-sudo find /var/www -type f -exec chmod 0664 {} \;
-
-# STEP 7 Create Wordpress DB
-echo "CREATE DATABASE $DBName;" >> /tmp/db.setup
-echo "CREATE USER '$DBUser'@'localhost' IDENTIFIED BY '$DBPassword';" >> /tmp/db.setup
-echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
-echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
-mysql -u root --password=$DBRootPassword < /tmp/db.setup
-sudo rm /tmp/db.setup
-```
-
-
-
-
-### Step-07-02: Install dependencies, system softwares, application & configure application files in `app-server-1`
-```bash
-#ssh to app-server-2 from bastion-server
-ssh -i "wp-project" ec2-user@private-ip-of-app-server-2
-
-# create & copy same shell scrips file `deploy-app.sh` which we created in `Step-07-01`
-vim deploy-app.sh
-
-# run shell file `deploy-app.sh`
-bash deploy-app.sh
-```
-
-
-
-
-## Step-08: Configuring `Amazon Route 53` to route traffic to Application load balancer:
-- go to AWS Console: >> Route 53 >> Hosted zones >> cloud-ops.store >> Create record: here we need to create 2 records:
-	- Record 1:
-		- Record name: ---
-		- Record type: A – Routes traffic to an IPv4 address and some AWS resources
-		- alias: enabled
-		- Route traffic to: Alias to Application and Classic Load Balancer
-		- choose region: Singapore  (ap-southeast-1)
-		- choose load balncer: select-your-load-balancer
-		- Routing policy: simple policy
-		- Evaluate target health: yes/enabled
-		- clik on `create records` >> done.
-	
-	- Record 2:
-		- Record name: www
-		- Record type: A – Routes traffic to an IPv4 address and some AWS resources
-		- alias: enabled
-		- Route traffic to: Alias to Application and Classic Load Balancer
-		- choose region: Singapore  (ap-southeast-1)
-		- choose load balncer: select-your-load-balancer
-		- Routing policy: simple policy
-		- Evaluate target health: yes/enabled
-		- clik on `create records` >> done.
-
-
-
-## Step-09: Open `cloud-ops.store` domain & configure your application
-- open this domain `cloud-ops.store` in new tab
+## Step-07: Open `pr8-alb` dns name & configure your application
+- copy `DNS name` of `pr8-alb` and paste to new tab
 - setup username & password for application & install
 - login application dashboard & go through the dashboard
 - open website which will be publicly available for end-users
+
 
 
 ##### =================> Thank You <=========================
