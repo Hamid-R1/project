@@ -1,14 +1,14 @@
 project-08-V2
 
 
-# Project: Wordpress Application Deploy on AWS infrastructure & Build Website
+# Project: `Wordpress` Application Deploy through `Terraform` on `AWS` infrastructure
 - WordPress is a free and open-source `content management system` (CMS) software that is used to create websites, blogs, and online stores. It is one of the most popular CMS tools in the world, with over 40% of all websites on the internet built using WordPress.
 - WordPress is written in `PHP` and uses a `MySQL` or `MariaDB` database to store content and settings. It is designed to be user-friendly, with a wide range of themes and plugins available to customize the appearance and functionality of a website.
 - this is `monolithic` project, in our next version of this project we will move `monolithic` to `microservice` (Containerizing applications).
 
 
 ## AWS Infra Architecture for this project
-- upload_here_image 
+![Untitled Diagram drawio (26)](https://user-images.githubusercontent.com/112654341/228327207-8d4805f3-94c0-4f5a-9b7d-a6a5f53bf3ce.png)
 
 
 ## AWS services for this project
@@ -237,7 +237,9 @@ resource "aws_route_table_association" "database_subnet_association-2" {
 - 1 security group for pr8-alb(application-load-balancer)
 - 1 security group for both app-servers
 - 1 security group for rds-server
-- upload_here security groups architecture
+
+### security groups for all compute resources
+![Untitled Diagram drawio (23)](https://user-images.githubusercontent.com/112654341/228327387-8057dbb8-060a-462a-978f-237e3d047426.png)
 
 
 ### Step-02:01: Terraform script for security groups: `03-security-group.tf`
