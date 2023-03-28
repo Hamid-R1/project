@@ -1,3 +1,4 @@
+# terraform block
 terraform {
   required_providers {
     aws = {
@@ -7,8 +8,8 @@ terraform {
   }
 }
 
+# provider block
 provider "aws" {
-  #region = "us-east-1"
   region  = "ap-southeast-1" #Asia Pacific (Singapore)#
   profile = "cloud-admin"    #iam-user #
 }
