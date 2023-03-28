@@ -24,10 +24,11 @@ resource "aws_db_instance" "db_instance" {
   allocated_storage        = 20
   db_subnet_group_name     = aws_db_subnet_group.db_sub_group.id
   multi_az                 = false
+  vpc_security_group_ids   = [aws_security_group.wp-DB-SG.id]
+  availability_zone        = "ap-southeast-1a"
+  port                     = 3306
+  publicly_accessible      = false
   skip_final_snapshot      = true
   delete_automated_backups = true
-  publicly_accessible      = false
-  port                     = 3306
-  vpc_security_group_ids   = [aws_security_group.wp-DB-SG.id]
 }
 
