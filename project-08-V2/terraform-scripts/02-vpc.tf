@@ -71,7 +71,6 @@ resource "aws_subnet" "wp-database-subnet-2" {
 }
 
 
-
 # Internet Gateway
 resource "aws_internet_gateway" "wp_igw" {
   vpc_id = aws_vpc.wp_vpc.id
@@ -79,7 +78,6 @@ resource "aws_internet_gateway" "wp_igw" {
     "Name" = "pr8-igw"
   }
 }
-
 
 
 # Create Elastic IP for NAT Gateway
@@ -98,7 +96,6 @@ resource "aws_nat_gateway" "wp-nat-gw" {
   # on the Internet Gateway for the VPC.
   depends_on = [aws_internet_gateway.wp_igw]
 }
-
 
 
 ######################################################
@@ -133,7 +130,6 @@ resource "aws_route" "wp-route-igw" {
 }
 
 
-
 ######################################################
 # private route table
 # private subnets association into private route table
@@ -166,7 +162,6 @@ resource "aws_route" "wp-route-nat-gw" {
 }
 
 
-
 ######################################################
 # database route table
 # database subnets association into database route table
@@ -189,27 +184,4 @@ resource "aws_route_table_association" "database_subnet_association-2" {
   route_table_id = aws_route_table.wp-database-rt.id
   subnet_id      = aws_subnet.wp-database-subnet-2.id
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
