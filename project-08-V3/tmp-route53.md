@@ -1,9 +1,7 @@
-# Load balancer HTTPS Setup with Route53 and Certificate Manager
+## Project-3: Load balancer HTTPS Setup with Certificate Manager and Route53
+- Here we will set up Load Balancer for HTTPS traffic with AWS Certificate Manager, and Route53
+- We will also learn how to redirect HTTP traffic to HTTPS.
 
-
-
-### How to HTTPS Setup with Route53 and Certificate Manager & HTTP redirect to HTTPS in ELB
-- Here we will set up Load Balancer for HTTPS traffic with AWS Certificate Manager, and Route 53, We will also learn how to redirect HTTP traffic to HTTPS.
 
 
 ### AWS services for this demo
@@ -105,7 +103,6 @@ cp -r * /var/www/html/
 ```
 - Certificate type: Request a public certificate
 - Fully qualified domain name: app.cloud-ops.store   or    dev.cloud-ops.store
-- Add another name to this certificate: *
 - Validation method: DNS validation - recommended
 - Key algorithm: RSA 2048
 - Request >> 
