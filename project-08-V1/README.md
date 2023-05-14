@@ -7,9 +7,6 @@
 
 
 ## AWS Infra Architecture for this project
-![Untitled Diagram drawio (26)](https://user-images.githubusercontent.com/112654341/222944548-3ee35638-451b-4dc9-ac2a-860401d6695c.png)
-
-
 ![Untitled Diagram drawio (26) (1)](https://github.com/Hamid-R1/project/assets/112654341/e4ddacad-7822-4a34-8585-5832b7277b9d)
 
 ## AWS services for this project
